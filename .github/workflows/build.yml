@@ -3,7 +3,7 @@ on: [push]
 
 jobs:
   build:
-    runs-on: ubuntu-22.04  # Use Ubuntu 22.04 instead of 24.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
     
@@ -21,7 +21,8 @@ jobs:
         sudo apt install -y libtool libtool-bin autoconf automake autotools-dev
         sudo apt install -y pkg-config
         sudo apt install -y imagemagick
-        pip install buildozer cython
+        pip install buildozer
+        pip install cython==0.29.36  # Pin to avoid the long type error
         
     - name: Create requirements.txt if missing
       run: |
@@ -29,13 +30,21 @@ jobs:
           echo -e "Flask==2.3.2\nopencv-python-headless==4.8.0.74\nnumpy==1.24.3" > requirements.txt
         fi
         
-    - name: Build APK (skip init since spec exists)
+    - name: Fix buildozer.spec
+      run: |
+        # Remove deprecated android.sdk and android.ndk lines
+        sed -i '/android.sdk/d' buildozer.spec
+        sed -i '/android.ndk/d' buildozer.spec
+        # Update requirements line to include cython version
+        sed -i 's/requirements = python3,flask,opencv-python,opencv-python-headless,numpy/requirements = python3,flask,opencv-python-headless,numpy,cython==0.29.36/g' buildozer.spec
+        
+    - name: Build APK
       run: |
         buildozer android debug
         
     - name: Upload APK
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v4  # Using v4 as required
       with:
-        name: WebView
+        name: webview-apk
         path: bin/*.apk
         retention-days: 30
