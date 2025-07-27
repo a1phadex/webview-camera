@@ -3,7 +3,7 @@ on: [push]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04  # Use Ubuntu 22.04 instead of 24.04
     steps:
     - uses: actions/checkout@v4
     
@@ -18,7 +18,8 @@ jobs:
         sudo apt install -y build-essential git openjdk-11-jdk
         sudo apt install -y libffi-dev libssl-dev zlib1g-dev
         sudo apt install -y libncurses5-dev libncursesw5-dev
-        sudo apt install -y libtool libtool-bin autoconf automake
+        sudo apt install -y libtool libtool-bin autoconf automake autotools-dev
+        sudo apt install -y pkg-config
         sudo apt install -y imagemagick
         pip install buildozer cython
         
