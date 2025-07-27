@@ -1,0 +1,48 @@
+name: Build APK
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.8'
+        
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y build-essential git openjdk-11-jdk
+        sudo apt install -y libffi-dev libssl-dev zlib1g-dev
+        sudo apt install -y libncurses5-dev libncursesw5-dev
+        sudo apt install -y libtool libtool-bin autoconf automake
+        sudo apt install -y imagemagick
+        pip install buildozer cython
+        
+    - name: Create missing files
+      run: |
+        # Create icon if it doesn't exist
+        if [ ! -f icon.png ]; then
+          convert -size 192x192 xc:#4285F4 -fill white -draw "circle 96,96 96,40" -fill #4285F4 -draw "circle 96,96 96,60" -fill white -draw "rectangle 76,120 116,150" icon.png
+        fi
+        # Create requirements.txt if it doesn't exist
+        if [ ! -f requirements.txt ]; then
+          echo -e "Flask==2.3.2\nopencv-python-headless==4.8.0.74\nnumpy==1.24.3" > requirements.txt
+        fi
+        
+    - name: Initialize buildozer
+      run: |
+        buildozer init
+        
+    - name: Build APK
+      run: |
+        buildozer android debug
+        
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: WebView
+        path: bin/*.apk
